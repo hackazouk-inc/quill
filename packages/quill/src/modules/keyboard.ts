@@ -357,7 +357,6 @@ class Keyboard extends Module<KeyboardOptions> {
       .delete(range.length)
       .insert('\n', lineFormats);
     this.quill.updateContents(delta, Quill.sources.USER);
-
     requestAnimationFrame(() => {
       const range = this.quill.getSelection();
       if (!range) return;
@@ -370,6 +369,9 @@ class Keyboard extends Module<KeyboardOptions> {
           this.quill.format(key, format[key], Quill.sources.SILENT);
         }
       });
+      console.log('update icons')
+      const toolbar = this.quill.theme.modules.toolbar as any;
+      toolbar?.update(range);
     });
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
     this.quill.focus();
