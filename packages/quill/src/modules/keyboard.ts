@@ -357,6 +357,20 @@ class Keyboard extends Module<KeyboardOptions> {
       .delete(range.length)
       .insert('\n', lineFormats);
     this.quill.updateContents(delta, Quill.sources.USER);
+
+    requestAnimationFrame(() => {
+      const range = this.quill.getSelection();
+      if (!range) return;
+
+      const format = this.quill.getFormat(range.index - 1);
+
+      const formatsToRetain = ['size', 'bold', 'italic', 'color'];
+      formatsToRetain.forEach((key) => {
+        if (format[key]) {
+          this.quill.format(key, format[key], Quill.sources.SILENT);
+        }
+      });
+    });
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
     this.quill.focus();
   }
