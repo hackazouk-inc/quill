@@ -369,7 +369,6 @@ class Keyboard extends Module<KeyboardOptions> {
           this.quill.format(key, format[key], Quill.sources.SILENT);
         }
       });
-      console.log('update icons')
       const toolbar = this.quill.theme.modules.toolbar as any;
       toolbar?.update(range);
     });
