@@ -7,6 +7,7 @@ import logger from '../core/logger.js';
 import Module from '../core/module.js';
 import type { BlockEmbed } from '../blots/block.js';
 import type { Range } from '../core/selection.js';
+import { SOFT_BREAK_CHARACTER } from '../blots/soft-break.js';
 
 const debug = logger('quill:keyboard');
 
@@ -84,6 +85,13 @@ class Keyboard extends Module<KeyboardOptions> {
         this.addBinding(this.options.bindings[name]);
       }
     });
+    this.addBinding(
+      {
+        key: 'Enter',
+        shiftKey: true,
+      },
+      this.handleShiftEnter,
+    );
     this.addBinding({ key: 'Enter', shiftKey: null }, this.handleEnter);
     this.addBinding(
       { key: 'Enter', metaKey: null, ctrlKey: null, altKey: null },
@@ -349,8 +357,32 @@ class Keyboard extends Module<KeyboardOptions> {
       .delete(range.length)
       .insert('\n', lineFormats);
     this.quill.updateContents(delta, Quill.sources.USER);
+    requestAnimationFrame(() => {
+      const range = this.quill.getSelection();
+      if (!range) return;
+
+      const format = this.quill.getFormat(range.index - 1);
+
+      const formatsToRetain = ['size', 'bold', 'italic', 'color'];
+      formatsToRetain.forEach((key) => {
+        if (format[key]) {
+          this.quill.format(key, format[key], Quill.sources.SILENT);
+        }
+      });
+      const toolbar = this.quill.theme.modules.toolbar as any;
+      toolbar?.update(range);
+    });
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
     this.quill.focus();
+  }
+
+  handleShiftEnter(range: Range) {
+    this.quill.insertText(
+      range.index,
+      SOFT_BREAK_CHARACTER,
+      Quill.sources.USER,
+    );
+    this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
   }
 }
 
@@ -664,7 +696,6 @@ function makeCodeBlockHandler(indent: boolean): BindingObject {
           } else {
             length += TAB.length;
           }
-          // @ts-expect-error Fix me later
         } else if (line.domNode.textContent.startsWith(TAB)) {
           line.deleteAt(0, TAB.length);
           if (i === 0) {
