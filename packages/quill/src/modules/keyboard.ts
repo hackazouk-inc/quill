@@ -357,6 +357,7 @@ class Keyboard extends Module<KeyboardOptions> {
       .delete(range.length)
       .insert('\n', lineFormats);
     this.quill.updateContents(delta, Quill.sources.USER);
+    console.log('enter')
     requestAnimationFrame(() => {
       const range = this.quill.getSelection();
       if (!range) return;
@@ -382,6 +383,7 @@ class Keyboard extends Module<KeyboardOptions> {
       SOFT_BREAK_CHARACTER,
       Quill.sources.USER,
     );
+    console.log('shift enter')
     this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
   }
 }
