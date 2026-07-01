@@ -1,6 +1,6 @@
 import { cloneDeep, isEqual } from 'lodash-es';
 import Delta, { AttributeMap } from 'quill-delta';
-import { EmbedBlot, Scope, TextBlot } from 'parchment';
+import { EmbedBlot, TextBlot } from 'parchment';
 import type { Blot, BlockBlot } from 'parchment';
 import Quill from '../core/quill.js';
 import logger from '../core/logger.js';
@@ -340,24 +340,12 @@ class Keyboard extends Module<KeyboardOptions> {
   }
 
   handleEnter(range: Range, context: Context) {
-    const lineFormats = Object.keys(context.format).reduce(
-      (formats: Record<string, unknown>, format) => {
-        if (
-          this.quill.scroll.query(format, Scope.BLOCK) &&
-          !Array.isArray(context.format[format])
-        ) {
-          formats[format] = context.format[format];
-        }
-        return formats;
-      },
-      {},
-    );
+    const lineFormats = { ...context.format };
     const delta = new Delta()
       .retain(range.index)
       .delete(range.length)
       .insert('\n', lineFormats);
     this.quill.updateContents(delta, Quill.sources.USER);
-    console.log('enter')
     requestAnimationFrame(() => {
       const range = this.quill.getSelection();
       if (!range) return;
@@ -378,13 +366,23 @@ class Keyboard extends Module<KeyboardOptions> {
   }
 
   handleShiftEnter(range: Range) {
+    const format = this.quill.getFormat(range.index, range.length);
     this.quill.insertText(
       range.index,
       SOFT_BREAK_CHARACTER,
-      Quill.sources.USER,
+      Quill.sources.USER
     );
-    console.log('shift enter')
-    this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+
+    this.quill.insertText(range.index + 1, '\u200B', 'user');
+
+    this.quill.setSelection(
+      range.index + 1,
+      Quill.sources.SILENT
+    );
+
+    if (format.size) {
+      this.quill.format('size', format.size, Quill.sources.SILENT);
+    }
   }
 }
 
