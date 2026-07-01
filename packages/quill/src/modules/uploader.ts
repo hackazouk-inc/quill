@@ -19,8 +19,8 @@ class Uploader extends Module<UploaderOptions> {
       let native: ReturnType<typeof document.createRange> | null = null;
       if (document.caretRangeFromPoint) {
         native = document.caretRangeFromPoint(e.clientX, e.clientY);
-      } else if (document.caretPositionFromPoint) {
-        const position = document.caretPositionFromPoint(e.clientX, e.clientY);
+      } else if ((document as any).caretPositionFromPoint) {
+        const position = (document as any).caretPositionFromPoint(e.clientX, e.clientY);
         if (position) {
           native = document.createRange();
           native.setStart(position.offsetNode, position.offset);
